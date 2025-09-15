@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Clipboard Manager</title>
+  <style>
+    :root{
+      --bg: #ffffff;
+      --card: #f0fdf4;
+      --muted: #5f7465;
+      --text: #2d3b2d;
+      --accent: #a7f3d0;
+      --accent-2: #22c55e;
+      --accent-hover: #16a34a;
+      --ring: rgba(34,197,94,.35);
+      --border: rgba(34,197,94,.25);
+      --shadow: 0 6px 18px rgba(0,0,0,.08);
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial;
+      color:var(--text);
+      background: var(--bg);
+    }
+    .container{max-width:980px;margin:0 auto;padding:32px 20px 60px}
+
+    .header{display:flex;gap:14px;align-items:center}
+    .logo{height:48px;width:48px;display:grid;place-items:center;border-radius:14px;background:linear-gradient(135deg,var(--accent),var(--accent-2));box-shadow:var(--shadow);color:#fff;font-size:22px}
+    .title{font-size:1.6rem;margin:0;color:var(--accent-2)}
+    .subtitle{margin:2px 0 0;color:var(--muted);font-size:.95rem}
+
+    .card{background:var(--card);
+      border:1px solid var(--border);border-radius:16px;padding:18px;box-shadow:var(--shadow)}
+
+    .composer{margin-top:20px}
+    .row{display:grid;grid-template-columns:1fr 2fr;gap:14px}
+    .row + .row{margin-top:12px}
+    label{display:block;color:var(--muted);font-size:.85rem;margin-bottom:6px}
+    input[type="text"], textarea{
+      width:100%;
+      background:#ffffff;
+      color:var(--text);
+      border:1px solid var(--border);
+      border-radius:12px;
+      padding:12px 12px;
+      outline:none;
+      transition:border-color .15s, box-shadow .15s;
+    }
+    textarea{resize:vertical;min-height:92px}
+    input:focus, textarea:focus{border-color:var(--accent-2);box-shadow:0 0 0 3px var(--ring)}
+
+    .actions{display:flex;justify-content:space-between;align-items:center;margin-top:12px}
+    .muted{color:var(--muted);font-size:.9rem}
+
+    .btn{appearance:none;border:0;border-radius:12px;padding:10px 14px;font-weight:600;cursor:pointer;transition:transform .05s ease, background-color .2s, opacity .2s}
+    .btn:active{transform:translateY(1px)}
+    .btn-primary{background:linear-gradient(135deg,var(--accent),var(--accent-2));color:#fff}
+    .btn-primary:hover{background:linear-gradient(135deg,var(--accent-2),var(--accent-hover))}
+    .btn-ghost{background:transparent;color:var(--accent-2);border:1px solid var(--border)}
+    .btn-ghost:hover{background:var(--accent);color:var(--accent-hover)}
+    .btn-secondary{background:#dcfce7;color:var(--accent-2);border:1px solid var(--border)}
+    .btn-secondary:hover{background:#bbf7d0}
+
+    .toolbar{display:flex;gap:10px;margin-top:18px}
+    .search{flex:1}
+
+    .grid{display:grid;grid-template-columns:1fr;gap:14px;margin-top:16px}
+    @media (min-width: 820px){.grid{grid-template-columns:1fr 1fr}}
+
+    .clip{position:relative}
+    .clip h3{margin:0;font-size:1rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--accent-2)}
+    .clip p{margin:.45rem 0 0;white-space:pre-wrap;color:var(--text);line-height:1.4;max-height:4.2em;overflow:hidden}
+    .clip .controls{display:flex;gap:8px;align-items:center;margin-top:12px}
+    .pill{position:absolute;inset-inline:0;bottom:-1px;height:2px;background:linear-gradient(90deg,transparent,var(--accent-2),transparent);opacity:.7}
+
+    .empty{margin-top:40px;text-align:center;border:1px dashed var(--border);border-radius:16px;padding:26px;color:var(--muted)}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="logo">📋</div>
+      <div>
+        <h1 class="title">Clipboard Manager</h1>
+        <p class="subtitle">Save snippets • One‑click copy • Local & offline</p>
+      </div>
+    </div>
+
+    <!-- Composer -->
+    <section class="card composer">
+      <div class="row">
+        <div>
+          <label for="title">Title</label>
+          <input id="title" type="text" placeholder="e.g., Email reply, API token" />
+        </div>
+        <div>
+          <label for="body">Text</label>
+          <textarea id="body" placeholder="Type or paste anything…"></textarea>
+        </div>
+      </div>
+      <div class="actions">
+        <span class="muted" id="count">Saved items: 0</span>
+        <div>
+          <button id="save" class="btn btn-primary">Save</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Tools -->
+    <div class="toolbar">
+      <input id="search" class="search" type="text" placeholder="Search title or text…" />
+      <button id="export" class="btn btn-ghost" title="Export JSON">Export</button>
+      <button id="import" class="btn btn-secondary" title="Import JSON">Import</button>
+      <input id="file" type="file" accept="application/json" style="display:none" />
+    </div>
+
+    <!-- List -->
+    <section id="list" class="grid"></section>
+
+    <div id="empty" class="empty" style="display:none">No clips yet. Add your first one above.</div>
+  </div>
+
+  <script>
+    (function(){
+      const storeKey = "simple_clips_v1";
+      const els = {
+        title: document.getElementById('title'),
+        body: document.getElementById('body'),
+        save: document.getElementById('save'),
+        list: document.getElementById('list'),
+        search: document.getElementById('search'),
+        count: document.getElementById('count'),
+        empty: document.getElementById('empty'),
+        exportBtn: document.getElementById('export'),
+        importBtn: document.getElementById('import'),
+        file: document.getElementById('file')
+      };
+
+      /** state **/
+      let clips = load();
+      render();
+
+      /** events **/
+      els.save.addEventListener('click', addClip);
+      els.search.addEventListener('input', render);
+      els.exportBtn.addEventListener('click', exportJSON);
+      els.importBtn.addEventListener('click', () => els.file.click());
+      els.file.addEventListener('change', handleImport);
+      document.addEventListener('keydown', (e)=>{
+        if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's'){
+          e.preventDefault();
+          addClip();
+        }
+      });
+
+      /** functions **/
+      function load(){
+        try{ return JSON.parse(localStorage.getItem(storeKey)) || [] }catch{ return [] }
+      }
+      function save(){
+        localStorage.setItem(storeKey, JSON.stringify(clips));
+      }
+
+      function addClip(){
+        const title = (els.title.value || '').trim();
+        const body = (els.body.value || '').trim();
+        if(!title && !body) return;
+        const clip = { id: crypto.randomUUID(), title: title || 'Untitled', body, createdAt: Date.now() };
+        clips = [clip, ...clips];
+        save();
+        els.title.value = '';
+        els.body.value = '';
+        render();
+      }
+
+      function copy(text, btn){
+        navigator.clipboard.writeText(text).then(()=>{
+          if(!btn) return;
+          const old = btn.textContent;
+          btn.textContent = 'Copied!';
+          btn.disabled = true;
+          setTimeout(()=>{ btn.textContent = old; btn.disabled = false; }, 900);
+        }).catch(()=>{
+          alert('Copy failed.');
+        })
+      }
+
+      function remove(id){
+        clips = clips.filter(c=>c.id!==id);
+        save();
+        render();
+      }
+
+      function exportJSON(){
+        const blob = new Blob([JSON.stringify(clips, null, 2)], {type:'application/json'});
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url; a.download = 'clips.json'; a.click();
+        URL.revokeObjectURL(url);
+      }
+
+      function handleImport(ev){
+        const file = ev.target.files[0];
+        if(!file) return;
+        const reader = new FileReader();
+        reader.onload = () => {
+          try{
+            const data = JSON.parse(reader.result);
+            if(Array.isArray(data)){
+              clips = data.map(x=>(
+                {
+                  id: x.id || crypto.randomUUID(),
+                  title: (x.title||'').toString(),
+                  body: (x.body||'').toString(),
+                  createdAt: Number(x.createdAt)||Date.now()
+                }
+              ));
+              save();
+              render();
+            } else {
+              alert('Invalid file');
+            }
+          }catch{ alert('Invalid JSON') }
+          ev.target.value = '';
+        }
+        reader.readAsText(file);
+      }
+
+      function fmtDate(ts){
+        const d = new Date(ts);
+        return d.toLocaleString();
+      }
+
+      function render(){
+        const q = (els.search.value||'').toLowerCase();
+        const visible = clips.filter(c => !q || c.title.toLowerCase().includes(q) || c.body.toLowerCase().includes(q));
+        els.count.textContent = `Saved items: ${clips.length}`;
+        els.empty.style.display = visible.length ? 'none' : 'block';
+        els.list.innerHTML = '';
+        for(const c of visible){
+          const card = document.createElement('div');
+          card.className = 'card clip';
+          card.innerHTML = `
+            <h3 title="${escapeHtml(c.title)}">${escapeHtml(c.title)}</h3>
+            <p>${escapeHtml(c.body)}</p>
+            <div class="controls">
+              <button class="btn btn-secondary" data-act="copy-details">Copy Details</button>
+              <button class="btn btn-ghost" data-act="copy-body">Body Only</button>
+              <button class="btn btn-ghost" style="margin-left:auto" data-act="delete">Delete</button>
+            </div>
+            <div class="pill"></div>
+            <div class="muted" style="margin-top:8px;font-size:.8rem">${fmtDate(c.createdAt)}</div>
+          `;
+          card.querySelector('[data-act="copy-details"]').addEventListener('click', (e)=> copy(`${c.title}\n\n${c.body}`, e.currentTarget));
+          card.querySelector('[data-act="copy-body"]').addEventListener('click', (e)=> copy(c.body, e.currentTarget));
+          card.querySelector('[data-act="delete"]').addEventListener('click', ()=> remove(c.id));
+          els.list.appendChild(card);
+        }
+      }
+
+      function escapeHtml(str){
+        return str.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[m]));
+      }
+    })();
+  </script>
+</body>
+</html>
