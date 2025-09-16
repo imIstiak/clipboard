@@ -290,7 +290,7 @@
             </div>
             <div class="pill"></div>
           `;
-          card.querySelector('[data-act="copy-details"]').addEventListener('click', (e)=> copy(`${c.title}\n\n${c.body}`, e.currentTarget));
+          card.querySelector('[data-act="copy-details"]').addEventListener('click', (e)=> copy(c.body, e.currentTarget));
           card.querySelector('[data-act="edit"]').addEventListener('click', () => editClip(c.id));
           card.querySelector('[data-act="delete"]').addEventListener('click', ()=> remove(c.id));
 
