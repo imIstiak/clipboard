@@ -6,16 +6,16 @@
   <title>Clipboard Manager</title>
   <style>
     :root{
-      --bg: #ffffff;
-      --card: #f0fdf4;
-      --muted: #5f7465;
-      --text: #2d3b2d;
-      --accent: #a7f3d0;
-      --accent-2: #22c55e;
-      --accent-hover: #16a34a;
-      --ring: rgba(34,197,94,.35);
-      --border: rgba(34,197,94,.25);
-      --shadow: 0 6px 18px rgba(0,0,0,.08);
+  --bg: #f6f7fb;
+  --card: #fff;
+  --muted: #7b8194;
+  --text: #23263b;
+  --accent: #a78bfa;
+  --accent-2: #7c3aed;
+  --accent-hover: #5b21b6;
+  --ring: rgba(124,58,237,.18);
+  --border: #e0e3ef;
+  --shadow: 0 6px 18px rgba(124,58,237,.08);
     }
     *{box-sizing:border-box}
     html,body{height:100%}
@@ -25,7 +25,7 @@
       color:var(--text);
       background: var(--bg);
     }
-    .container{max-width:980px;margin:0 auto;padding:32px 20px 60px}
+  .container{max-width:980px;margin:0 auto;padding:40px 20px 60px}
 
     .header{display:flex;gap:14px;align-items:center}
     .logo{height:48px;width:48px;display:grid;place-items:center;border-radius:14px;background:linear-gradient(135deg,var(--accent),var(--accent-2));box-shadow:var(--shadow);color:#fff;font-size:22px}
@@ -33,7 +33,8 @@
     .subtitle{margin:2px 0 0;color:var(--muted);font-size:.95rem}
 
     .card{background:var(--card);
-      border:1px solid var(--border);border-radius:16px;padding:18px;box-shadow:var(--shadow)}
+      border:1px solid var(--border);border-radius:18px;padding:14px 18px;box-shadow:var(--shadow);transition:box-shadow .2s}
+    .card:hover{box-shadow:0 8px 24px rgba(124,58,237,.12)}
 
     .composer{margin-top:20px}
     .row{display:grid;grid-template-columns:1fr 2fr;gap:14px}
@@ -55,28 +56,37 @@
     .actions{display:flex;justify-content:space-between;align-items:center;margin-top:12px}
     .muted{color:var(--muted);font-size:.9rem}
 
-    .btn{appearance:none;border:0;border-radius:12px;padding:10px 14px;font-weight:600;cursor:pointer;transition:transform .05s ease, background-color .2s, opacity .2s}
-    .btn:active{transform:translateY(1px)}
-    .btn-primary{background:linear-gradient(135deg,var(--accent),var(--accent-2));color:#fff}
-    .btn-primary:hover{background:linear-gradient(135deg,var(--accent-2),var(--accent-hover))}
-    .btn-ghost{background:transparent;color:var(--accent-2);border:1px solid var(--border)}
-    .btn-ghost:hover{background:var(--accent);color:var(--accent-hover)}
-    .btn-secondary{background:#dcfce7;color:var(--accent-2);border:1px solid var(--border)}
-    .btn-secondary:hover{background:#bbf7d0}
+  .btn{appearance:none;border:0;border-radius:14px;padding:10px 18px;font-weight:600;cursor:pointer;transition:transform .05s ease, background .2s, opacity .2s}
+  .btn:active{transform:translateY(1px)}
+  .btn-primary{background:linear-gradient(135deg,var(--accent),var(--accent-2));color:#fff}
+  .btn-primary:hover{background:linear-gradient(135deg,var(--accent-2),var(--accent-hover))}
+  .btn-ghost{background:transparent;color:var(--accent-2);border:1px solid var(--border)}
+  .btn-ghost:hover{background:var(--accent);color:var(--accent-hover)}
+  .btn-secondary{background:#ede9fe;color:var(--accent-2);border:1px solid var(--border)}
+  .btn-secondary:hover{background:#d1d5fa}
 
     .toolbar{display:flex;gap:10px;margin-top:18px}
     .search{flex:1}
 
-    .grid{display:grid;grid-template-columns:1fr;gap:14px;margin-top:16px}
-    @media (min-width: 820px){.grid{grid-template-columns:1fr 1fr}}
+    .clips-columns {
+      display: flex;
+      gap: 24px;
+      margin-top: 16px;
+    }
+    .clips-col {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      min-width: 0;
+    }
 
     .clip{position:relative}
-    .clip h3{margin:0;font-size:1rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--accent-2)}
-    .clip p{margin:.45rem 0 0;white-space:pre-wrap;color:var(--text);line-height:1.4;max-height:4.2em;overflow:hidden}
-    .clip .controls{display:flex;gap:8px;align-items:center;margin-top:12px}
+  .clip h3{margin:0;font-size:1.08rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--accent-2)}
+  .clip .controls{display:flex;gap:8px;align-items:center;margin-top:8px}
     .pill{position:absolute;inset-inline:0;bottom:-1px;height:2px;background:linear-gradient(90deg,transparent,var(--accent-2),transparent);opacity:.7}
 
-    .empty{margin-top:40px;text-align:center;border:1px dashed var(--border);border-radius:16px;padding:26px;color:var(--muted)}
+  .empty{margin-top:40px;text-align:center;border:1.5px dashed var(--border);border-radius:18px;padding:30px;color:var(--muted);background:#fff}
   </style>
 </head>
 <body>
@@ -94,7 +104,12 @@
       <div class="row">
         <div>
           <label for="title">Title</label>
-          <input id="title" type="text" placeholder="e.g., Email reply, API token" />
+          <input id="title" type="text" placeholder="e.g., Email reply, API token" style="margin-bottom:8px;" />
+          <div style="margin-bottom:8px;display:flex;gap:18px;align-items:center;">
+            <label style="display:flex;align-items:center;gap:6px;font-weight:500;color:var(--accent-2)"><input type="radio" name="colType" id="col-lt" value="LT" checked /> LT</label>
+            <label style="display:flex;align-items:center;gap:6px;font-weight:500;color:var(--accent-2)"><input type="radio" name="colType" id="col-bt" value="BT" /> BT</label>
+          </div>
+        
         </div>
         <div>
           <label for="body">Text</label>
@@ -118,7 +133,16 @@
     </div>
 
     <!-- List -->
-    <section id="list" class="grid"></section>
+    <section class="clips-columns">
+      <div style="flex:1;display:flex;flex-direction:column;gap:14px;min-width:0;">
+        <div style="font-weight:700;font-size:1.15rem;margin-bottom:10px;color:var(--accent-2);letter-spacing:1px;background:#ede9fe;padding:8px 0;border-radius:10px;text-align:center;">LT</div>
+        <div id="left-col" class="clips-col"></div>
+      </div>
+      <div style="flex:1;display:flex;flex-direction:column;gap:14px;min-width:0;">
+        <div style="font-weight:700;font-size:1.15rem;margin-bottom:10px;color:var(--accent-2);letter-spacing:1px;background:#ede9fe;padding:8px 0;border-radius:10px;text-align:center;">BT</div>
+        <div id="right-col" class="clips-col"></div>
+      </div>
+    </section>
 
     <div id="empty" class="empty" style="display:none">No clips yet. Add your first one above.</div>
   </div>
@@ -168,8 +192,13 @@
         const title = (els.title.value || '').trim();
         const body = (els.body.value || '').trim();
         if(!title && !body) return;
-        const clip = { id: crypto.randomUUID(), title: title || 'Untitled', body, createdAt: Date.now() };
-        clips = [clip, ...clips];
+        const colType = document.querySelector('input[name="colType"]:checked').value;
+        const clip = { id: crypto.randomUUID(), title: title || 'Untitled', body, createdAt: Date.now(), colType };
+        clips.unshift(clip);
+        save();
+        els.title.value = '';
+        els.body.value = '';
+        render();
         save();
         els.title.value = '';
         els.body.value = '';
@@ -239,26 +268,81 @@
         const visible = clips.filter(c => !q || c.title.toLowerCase().includes(q) || c.body.toLowerCase().includes(q));
         els.count.textContent = `Saved items: ${clips.length}`;
         els.empty.style.display = visible.length ? 'none' : 'block';
-        els.list.innerHTML = '';
-        for(const c of visible){
+        // Split visible clips into two columns by colType
+        const leftCol = document.getElementById('left-col');
+        const rightCol = document.getElementById('right-col');
+        leftCol.innerHTML = '';
+        rightCol.innerHTML = '';
+        const leftClips = visible.filter(c => c.colType === 'LT');
+        const rightClips = visible.filter(c => c.colType === 'BT');
+
+        function createCard(c, colClips, colDiv) {
           const card = document.createElement('div');
           card.className = 'card clip';
+          card.setAttribute('draggable', 'true');
+          card.setAttribute('data-id', c.id);
           card.innerHTML = `
             <h3 title="${escapeHtml(c.title)}">${escapeHtml(c.title)}</h3>
-            <p>${escapeHtml(c.body)}</p>
             <div class="controls">
-              <button class="btn btn-secondary" data-act="copy-details">Copy Details</button>
-              <button class="btn btn-ghost" data-act="copy-body">Body Only</button>
+              <button class="btn btn-secondary" data-act="copy-details">Copy</button>
+              <button class="btn btn-ghost" data-act="edit">Edit</button>
               <button class="btn btn-ghost" style="margin-left:auto" data-act="delete">Delete</button>
             </div>
             <div class="pill"></div>
-            <div class="muted" style="margin-top:8px;font-size:.8rem">${fmtDate(c.createdAt)}</div>
           `;
           card.querySelector('[data-act="copy-details"]').addEventListener('click', (e)=> copy(`${c.title}\n\n${c.body}`, e.currentTarget));
-          card.querySelector('[data-act="copy-body"]').addEventListener('click', (e)=> copy(c.body, e.currentTarget));
+          card.querySelector('[data-act="edit"]').addEventListener('click', () => editClip(c.id));
           card.querySelector('[data-act="delete"]').addEventListener('click', ()=> remove(c.id));
-          els.list.appendChild(card);
+
+          // Drag and drop events
+          card.addEventListener('dragstart', (e) => {
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/plain', c.id);
+            card.classList.add('dragging');
+          });
+          card.addEventListener('dragend', (e) => {
+            card.classList.remove('dragging');
+          });
+          card.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            card.classList.add('drag-over');
+          });
+          card.addEventListener('dragleave', (e) => {
+            card.classList.remove('drag-over');
+          });
+          card.addEventListener('drop', (e) => {
+            e.preventDefault();
+            card.classList.remove('drag-over');
+            const draggedId = e.dataTransfer.getData('text/plain');
+            if (draggedId === c.id) return;
+            // Only reorder within this column
+            const fromIdx = colClips.findIndex(x => x.id === draggedId);
+            const toIdx = colClips.findIndex(x => x.id === c.id);
+            if (fromIdx === -1 || toIdx === -1) return;
+            const [moved] = colClips.splice(fromIdx, 1);
+            colClips.splice(toIdx, 0, moved);
+            // Update clips array
+            clips = [...leftClips, ...rightClips];
+            save();
+            render();
+          });
+          return card;
         }
+
+        leftClips.forEach(c => leftCol.appendChild(createCard(c, leftClips, leftCol)));
+        rightClips.forEach(c => rightCol.appendChild(createCard(c, rightClips, rightCol)));
+
+      // Edit functionality: fill form with selected clip
+      function editClip(id) {
+        const clip = clips.find(c => c.id === id);
+        if (!clip) return;
+        els.title.value = clip.title;
+        els.body.value = clip.body;
+        // Remove the old clip so saving will update it
+        clips = clips.filter(c => c.id !== id);
+        save();
+        render();
+      }
       }
 
       function escapeHtml(str){
