@@ -349,6 +349,36 @@
         return str.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[m]));
       }
     })();
+
+*** Begin Patch
+*** Update File: index.html
+@@
+-      function copy(text, btn){
+-        navigator.clipboard.writeText(text).then(()=>{
+-          if(!btn) return;
+-          const old = btn.textContent;
+-          btn.textContent = 'Copied!';
+-          btn.disabled = true;
+-          setTimeout(()=>{ btn.textContent = old; btn.disabled = false; }, 900);
+-        }).catch(()=>{
+-          alert('Copy failed.');
+-        })
+-      }
++      function copy(text, btn){
++        // Normalize CRLF -> LF to avoid doubled blank lines in some target apps
++        const normalized = (text || '').replace(/\r\n/g, '\n');
++        navigator.clipboard.writeText(normalized).then(()=>{
++          if(!btn) return;
++          const old = btn.textContent;
++          btn.textContent = 'Copied!';
++          btn.disabled = true;
++          setTimeout(()=>{ btn.textContent = old; btn.disabled = false; }, 900);
++        }).catch(()=>{
++          alert('Copy failed.');
++        })
++      }
+*** End Patch
+    
   </script>
 </body>
 </html>
